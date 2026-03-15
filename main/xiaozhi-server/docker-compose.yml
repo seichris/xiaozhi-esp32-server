@@ -10,7 +10,7 @@ services:
       - seccomp:unconfined
     environment:
       - TZ=Asia/Shanghai
-    ports:
+    # ports:
       # ws服务端
       # - "8000:8000"
       # http服务的端口，用于简单OTA接口(单服务部署)，以及视觉分析接口
