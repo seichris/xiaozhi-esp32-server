@@ -16,7 +16,7 @@ services:
       - |
         mkdir -p /opt/xiaozhi-esp32-server/data
         if [ ! -s /opt/xiaozhi-esp32-server/data/.config.yaml ]; then
-          printf '{}\n' > /opt/xiaozhi-esp32-server/data/.config.yaml
+          printf 'server:\n  websocket: wss://xiaozhi.8o.vc/xiaozhi/v1/\n  vision_explain: https://xiaozhi.8o.vc/mcp/vision/explain\nselected_module:\n  ASR: FunASRServer\n' > /opt/xiaozhi-esp32-server/data/.config.yaml
         fi
         exec python app.py
     # ports:
