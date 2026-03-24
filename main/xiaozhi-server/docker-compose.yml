@@ -15,8 +15,8 @@ services:
       - -lc
       - |
         mkdir -p /opt/xiaozhi-esp32-server/data
-        if [ ! -f /opt/xiaozhi-esp32-server/data/.config.yaml ]; then
-          : > /opt/xiaozhi-esp32-server/data/.config.yaml
+        if [ ! -s /opt/xiaozhi-esp32-server/data/.config.yaml ]; then
+          printf '{}\n' > /opt/xiaozhi-esp32-server/data/.config.yaml
         fi
         exec python app.py
     # ports:
