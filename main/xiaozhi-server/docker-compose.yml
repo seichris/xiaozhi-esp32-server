@@ -10,6 +10,15 @@ services:
       - seccomp:unconfined
     environment:
       - TZ=Asia/Shanghai
+    command:
+      - sh
+      - -lc
+      - |
+        mkdir -p /opt/xiaozhi-esp32-server/data
+        if [ ! -f /opt/xiaozhi-esp32-server/data/.config.yaml ]; then
+          : > /opt/xiaozhi-esp32-server/data/.config.yaml
+        fi
+        exec python app.py
     # ports:
       # ws服务端
       # - "8000:8000"
