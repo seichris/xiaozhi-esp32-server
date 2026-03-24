@@ -10,6 +10,11 @@ services:
       - seccomp:unconfined
     environment:
       - TZ=Asia/Shanghai
+      - XIAOZHI_LLM_BASE_URL=${XIAOZHI_LLM_BASE_URL:-}
+      - XIAOZHI_LLM_MODEL_NAME=${XIAOZHI_LLM_MODEL_NAME:-hermes-agent}
+      - XIAOZHI_LLM_API_KEY=${XIAOZHI_LLM_API_KEY:-dummy}
+      - XIAOZHI_LLM_PROVIDER_NAME=${XIAOZHI_LLM_PROVIDER_NAME:-HermesLLM}
+      - XIAOZHI_INTENT_MODULE=${XIAOZHI_INTENT_MODULE:-nointent}
     command:
       - sh
       - -lc

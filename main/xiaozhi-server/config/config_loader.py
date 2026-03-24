@@ -45,6 +45,8 @@ def load_config():
     else:
         # 合并配置
         config = merge_configs(default_config, custom_config)
+
+    config = apply_runtime_overrides(config)
     # 初始化目录
     ensure_directories(config)
 
@@ -129,6 +131,34 @@ def ensure_directories(config):
             os.makedirs(dir_path, exist_ok=True)
         except PermissionError:
             print(f"警告：无法创建目录 {dir_path}，请检查写入权限")
+
+
+def apply_runtime_overrides(config):
+    """应用运行时环境变量覆盖，便于容器部署时注入关键配置。"""
+    llm_base_url = os.getenv("XIAOZHI_LLM_BASE_URL") or os.getenv("XIAOZHI_LLM_URL")
+    if not llm_base_url:
+        return config
+
+    provider_name = os.getenv("XIAOZHI_LLM_PROVIDER_NAME", "HermesLLM")
+    llm_type = os.getenv("XIAOZHI_LLM_TYPE", "openai")
+    llm_api_key = os.getenv("XIAOZHI_LLM_API_KEY", "dummy")
+    llm_model_name = os.getenv("XIAOZHI_LLM_MODEL_NAME", "hermes-agent")
+    intent_module = os.getenv("XIAOZHI_INTENT_MODULE", "nointent")
+
+    selected_module = config.setdefault("selected_module", {})
+    selected_module["LLM"] = provider_name
+    if intent_module:
+        selected_module["Intent"] = intent_module
+
+    llm_configs = config.setdefault("LLM", {})
+    llm_configs[provider_name] = {
+        "type": llm_type,
+        "model_name": llm_model_name,
+        "api_key": llm_api_key,
+        "base_url": llm_base_url,
+    }
+
+    return config
 
 
 def merge_configs(default_config, custom_config):
