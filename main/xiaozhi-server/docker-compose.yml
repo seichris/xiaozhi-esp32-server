@@ -14,7 +14,9 @@ services:
       - sh
       - -lc
       - |
-        mkdir -p /opt/xiaozhi-esp32-server/data
+        mkdir -p /opt/xiaozhi-esp32-server/runtime-data
+        rm -rf /opt/xiaozhi-esp32-server/data
+        ln -s /opt/xiaozhi-esp32-server/runtime-data /opt/xiaozhi-esp32-server/data
         if [ ! -f /opt/xiaozhi-esp32-server/data/.config.yaml ]; then
           : > /opt/xiaozhi-esp32-server/data/.config.yaml
         fi
@@ -26,6 +28,6 @@ services:
       # - "8003:8003"
     volumes:
       # 配置文件目录
-      - ./runtime-data:/opt/xiaozhi-esp32-server/data
+      - ./runtime-data:/opt/xiaozhi-esp32-server/runtime-data
       # 模型文件挂接，很重要
       - ./models/SenseVoiceSmall/model.pt:/opt/xiaozhi-esp32-server/models/SenseVoiceSmall/model.pt
