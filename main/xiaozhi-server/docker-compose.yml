@@ -20,9 +20,44 @@ services:
       - -lc
       - |
         mkdir -p /opt/xiaozhi-esp32-server/data
-        if [ ! -s /opt/xiaozhi-esp32-server/data/.config.yaml ] || [ "$(tr -d '[:space:]' < /opt/xiaozhi-esp32-server/data/.config.yaml)" = "{}" ]; then
-          printf 'server:\n  websocket: wss://xiaozhi.8o.vc/xiaozhi/v1/\n  vision_explain: https://xiaozhi.8o.vc/mcp/vision/explain\nselected_module:\n  ASR: FunASRServer\n' > /opt/xiaozhi-esp32-server/data/.config.yaml
-        fi
+        python - <<'PY'
+        import os
+        import yaml
+
+        config_path = "/opt/xiaozhi-esp32-server/data/.config.yaml"
+        if os.path.exists(config_path):
+            with open(config_path, "r", encoding="utf-8") as f:
+                config = yaml.safe_load(f) or {}
+        else:
+            config = {}
+
+        server = config.setdefault("server", {})
+        server.setdefault("websocket", "wss://xiaozhi.8o.vc/xiaozhi/v1/")
+        server.setdefault("vision_explain", "https://xiaozhi.8o.vc/mcp/vision/explain")
+
+        selected_module = config.setdefault("selected_module", {})
+        selected_module.setdefault("ASR", "FunASRServer")
+
+        llm_base_url = os.getenv("XIAOZHI_LLM_BASE_URL")
+        if llm_base_url:
+            provider_name = os.getenv("XIAOZHI_LLM_PROVIDER_NAME", "HermesLLM")
+            llm_type = os.getenv("XIAOZHI_LLM_TYPE", "openai")
+            llm_model_name = os.getenv("XIAOZHI_LLM_MODEL_NAME", "hermes-agent")
+            llm_api_key = os.getenv("XIAOZHI_LLM_API_KEY", "dummy")
+            intent_module = os.getenv("XIAOZHI_INTENT_MODULE", "nointent")
+
+            selected_module["LLM"] = provider_name
+            selected_module["Intent"] = intent_module
+            config.setdefault("LLM", {})[provider_name] = {
+                "type": llm_type,
+                "base_url": llm_base_url,
+                "model_name": llm_model_name,
+                "api_key": llm_api_key,
+            }
+
+        with open(config_path, "w", encoding="utf-8") as f:
+            yaml.safe_dump(config, f, allow_unicode=True, sort_keys=False)
+        PY
         exec python app.py
     # ports:
       # ws服务端
