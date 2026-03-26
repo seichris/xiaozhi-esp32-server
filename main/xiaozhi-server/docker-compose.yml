@@ -36,16 +36,19 @@ services:
         runtime_model_path = "/opt/xiaozhi-esp32-server/models/SenseVoiceSmall/model.pt"
 
         os.makedirs(persistent_model_dir, exist_ok=True)
+        os.makedirs(os.path.dirname(runtime_model_path), exist_ok=True)
         if os.path.isdir(runtime_model_path):
             shutil.rmtree(runtime_model_path)
+        elif os.path.lexists(runtime_model_path):
+            os.unlink(runtime_model_path)
 
         if not os.path.exists(persistent_model_path):
             model_url = os.getenv("XIAOZHI_ASR_MODEL_URL")
             if model_url:
                 urllib.request.urlretrieve(model_url, persistent_model_path)
 
-        if os.path.exists(persistent_model_path) and not os.path.exists(runtime_model_path):
-            os.symlink(persistent_model_path, runtime_model_path)
+        if os.path.exists(persistent_model_path):
+            shutil.copyfile(persistent_model_path, runtime_model_path)
 
         if os.path.exists(config_path):
             with open(config_path, "r", encoding="utf-8") as f:
