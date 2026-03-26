@@ -15,6 +15,7 @@ services:
       - XIAOZHI_LLM_API_KEY=${XIAOZHI_LLM_API_KEY:-dummy}
       - XIAOZHI_LLM_PROVIDER_NAME=${XIAOZHI_LLM_PROVIDER_NAME:-HermesLLM}
       - XIAOZHI_INTENT_MODULE=${XIAOZHI_INTENT_MODULE:-nointent}
+      - XIAOZHI_ASR_PROVIDER=${XIAOZHI_ASR_PROVIDER:-}
       - XIAOZHI_WEBSOCKET_URL=${XIAOZHI_WEBSOCKET_URL:-}
       - XIAOZHI_VISION_EXPLAIN_URL=${XIAOZHI_VISION_EXPLAIN_URL:-}
     command:
@@ -48,7 +49,11 @@ services:
             server.setdefault("vision_explain", "https://xiaozhi.8o.vc/mcp/vision/explain")
 
         selected_module = config.setdefault("selected_module", {})
-        selected_module.setdefault("ASR", "FunASRServer")
+        asr_provider = os.getenv("XIAOZHI_ASR_PROVIDER")
+        if asr_provider:
+            selected_module["ASR"] = asr_provider
+        else:
+            selected_module.setdefault("ASR", "FunASR")
 
         llm_base_url = os.getenv("XIAOZHI_LLM_BASE_URL")
         if llm_base_url:
