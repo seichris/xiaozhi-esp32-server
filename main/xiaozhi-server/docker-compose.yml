@@ -17,6 +17,10 @@ services:
       - XIAOZHI_INTENT_MODULE=${XIAOZHI_INTENT_MODULE:-nointent}
       - XIAOZHI_ASR_PROVIDER=${XIAOZHI_ASR_PROVIDER:-}
       - XIAOZHI_ASR_MODEL_URL=${XIAOZHI_ASR_MODEL_URL:-https://modelscope.cn/models/iic/SenseVoiceSmall/resolve/master/model.pt}
+      - XIAOZHI_TTS_PROVIDER=${XIAOZHI_TTS_PROVIDER:-}
+      - XIAOZHI_TTS_VOICE=${XIAOZHI_TTS_VOICE:-}
+      - XIAOZHI_TTS_LANGUAGE=${XIAOZHI_TTS_LANGUAGE:-}
+      - XIAOZHI_PROMPT=${XIAOZHI_PROMPT:-}
       - XIAOZHI_WEBSOCKET_URL=${XIAOZHI_WEBSOCKET_URL:-}
       - XIAOZHI_VISION_EXPLAIN_URL=${XIAOZHI_VISION_EXPLAIN_URL:-}
     command:
@@ -76,6 +80,22 @@ services:
             selected_module["ASR"] = asr_provider
         else:
             selected_module.setdefault("ASR", "FunASR")
+
+        tts_provider = os.getenv("XIAOZHI_TTS_PROVIDER")
+        tts_voice = os.getenv("XIAOZHI_TTS_VOICE")
+        tts_language = os.getenv("XIAOZHI_TTS_LANGUAGE")
+        if tts_provider:
+            selected_module["TTS"] = tts_provider
+        select_tts_module = selected_module.setdefault("TTS", "EdgeTTS")
+        tts_config = config.setdefault("TTS", {}).setdefault(select_tts_module, {})
+        if tts_voice:
+            tts_config["voice"] = tts_voice
+        if tts_language:
+            tts_config["language"] = tts_language
+
+        prompt_text = os.getenv("XIAOZHI_PROMPT")
+        if prompt_text:
+            config["prompt"] = prompt_text
 
         llm_base_url = os.getenv("XIAOZHI_LLM_BASE_URL")
         if llm_base_url:
