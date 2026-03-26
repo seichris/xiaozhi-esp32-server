@@ -16,6 +16,7 @@ services:
       - XIAOZHI_LLM_PROVIDER_NAME=${XIAOZHI_LLM_PROVIDER_NAME:-HermesLLM}
       - XIAOZHI_INTENT_MODULE=${XIAOZHI_INTENT_MODULE:-nointent}
       - XIAOZHI_ASR_PROVIDER=${XIAOZHI_ASR_PROVIDER:-}
+      - XIAOZHI_ASR_MODEL_URL=${XIAOZHI_ASR_MODEL_URL:-https://modelscope.cn/models/iic/SenseVoiceSmall/resolve/master/model.pt}
       - XIAOZHI_WEBSOCKET_URL=${XIAOZHI_WEBSOCKET_URL:-}
       - XIAOZHI_VISION_EXPLAIN_URL=${XIAOZHI_VISION_EXPLAIN_URL:-}
     command:
@@ -25,9 +26,27 @@ services:
         mkdir -p /opt/xiaozhi-esp32-server/data
         python - <<'PY'
         import os
+        import shutil
+        import urllib.request
         import yaml
 
         config_path = "/opt/xiaozhi-esp32-server/data/.config.yaml"
+        persistent_model_dir = "/opt/xiaozhi-esp32-server/data/models/SenseVoiceSmall"
+        persistent_model_path = f"{persistent_model_dir}/model.pt"
+        runtime_model_path = "/opt/xiaozhi-esp32-server/models/SenseVoiceSmall/model.pt"
+
+        os.makedirs(persistent_model_dir, exist_ok=True)
+        if os.path.isdir(runtime_model_path):
+            shutil.rmtree(runtime_model_path)
+
+        if not os.path.exists(persistent_model_path):
+            model_url = os.getenv("XIAOZHI_ASR_MODEL_URL")
+            if model_url:
+                urllib.request.urlretrieve(model_url, persistent_model_path)
+
+        if os.path.exists(persistent_model_path) and not os.path.exists(runtime_model_path):
+            os.symlink(persistent_model_path, runtime_model_path)
+
         if os.path.exists(config_path):
             with open(config_path, "r", encoding="utf-8") as f:
                 config = yaml.safe_load(f) or {}
@@ -84,7 +103,5 @@ services:
     volumes:
       # 配置文件目录
       - xiaozhi-runtime-data:/opt/xiaozhi-esp32-server/data
-      # 模型文件挂接，很重要
-      - ./models/SenseVoiceSmall/model.pt:/opt/xiaozhi-esp32-server/models/SenseVoiceSmall/model.pt
 volumes:
   xiaozhi-runtime-data:
